@@ -4,9 +4,9 @@ pragma solidity ^0.8.18;
 
 import {Script} from "lib/forge-std/src/Script.sol";
 import {LinkToken} from "test/mocks/LinkToken.sol";
-// import {VRFCoordinatorV2Mock} from "@chainlink/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+import {VRFCoordinatorV2Mock} from "@chainlink/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 
-import {VRFCoordinatorV2Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+// import {VRFCoordinatorV2Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 
 contract HelperConfig is Script {
     struct NetworkConfig {
