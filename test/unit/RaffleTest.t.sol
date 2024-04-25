@@ -6,6 +6,7 @@ import {DeployRaffle} from "script/DeployRaffle.s.sol";
 import {Raffle} from "src/Raffle.sol";
 import {Test, console} from "lib/forge-std/src/Test.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
+import {Vm} from "lib/forge-std/src/Vm.sol";
 
 contract RaffleTest is Test {
     /** Events */
@@ -130,5 +131,58 @@ contract RaffleTest is Test {
         (bool upkeepNeeded, ) = raffle.checkUpKeep("");
 
         assert(upkeepNeeded);
+    }
+
+    /////////////////////////
+    // performUpKeep ////////
+    /////////////////////////
+
+    function testPerformUpKeepRunsOnlyIfCheckUpKeepReturnsTrue() public {
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+
+        raffle.performUpkeep("");
+    }
+
+    function testPerformUpKeepDoesNotRunIfCheckUpKeepReturnsFalse() public {
+        uint256 currentBalance = 0;
+        uint256 numPlayers = 0;
+        uint256 raffleState = 0;
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Raffle.Raffle__UpKeepNotNeeded.selector,
+                currentBalance,
+                numPlayers,
+                raffleState
+            )
+        );
+        raffle.performUpkeep("");
+    }
+
+    modifier raflleEnteradAndTimePassed() {
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        _;
+    }
+
+    // What if I need output from events in test?
+    function testPerformUpkeepUpdatesRaffleStateAndEmitsRequestId()
+        public
+        raflleEnteradAndTimePassed
+    {
+        vm.recordLogs();
+        raffle.performUpkeep("");
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        bytes32 requestId = entries[1].topics[1];
+
+        Raffle.RaffleState rState = raffle.getRaffleState();
+
+        assert(uint256(requestId) > 0);
+        assert(uint256(rState) == 1);
     }
 }
